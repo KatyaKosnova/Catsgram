@@ -8,9 +8,20 @@ import lombok.NonNull;
 @Builder
 public class User {
 
+    private Long id;
+
+    private String username;
+
+    private String email;
+
+    private String password;
+
+    private Long registrationDate;
+
     @NonNull
     private Details details;
 
-    @Builder.Default
-    private PurchasesInformation purchasesInformation = PurchasesInformation.builder().build();
+    public boolean isValid() {
+        return email != null && username != null && details != null;
+    }
 }

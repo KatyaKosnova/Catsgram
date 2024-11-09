@@ -1,33 +1,57 @@
 package ru.yandex.practicum.catsgram.model;
 
-import java.util.Scanner;
+import org.springframework.stereotype.Component;
 
-public class UserStorage {
+import java.util.*;
 
-    private final Scanner scanner = new Scanner(System.in);
+@Component
+public class UserStorage implements Storage {
 
-    private final Storage storage = new MemoryStorage();
+    private final Map<String, User> userMap = new HashMap<>();
 
-    public static void main(String[] args) {
-        new UserStorage().loop();
+    @Override
+    public void put(User user) {
+        if (userMap.containsKey(user.getDetails().getEmail())) {
+            throw new UserAlreadyExistsException("Пользователь с таким email уже существует.");
+        }
+        userMap.put(user.getDetails().getEmail(), user);
+    }
+
+    @Override
+    public User get(String email) {
+        return userMap.get(email);
+    }
+
+    public void addUser(User user) {
+        put(user); // Используем метод put, чтобы избежать дублирования кода
+    }
+
+    public Map<String, User> getUserMap() {
+        return userMap;
+    }
+
+    public User searchUser(String email) {
+        return get(email);
     }
 
     public void loop() {
-        while (true) {
-            final String action = getAction();
-            switch (action) {
-                case "1" -> addUser();
-                case "2" -> searchUser();
-                case "3" -> {
-                    System.out.println("Завершение программы.");
-                    return;
+        try (Scanner scanner = new Scanner(System.in)) {
+            while (true) {
+                final String action = getAction(scanner);
+                switch (action) {
+                    case "1" -> addUserConsole(scanner);
+                    case "2" -> searchUserConsole(scanner);
+                    case "3" -> {
+                        System.out.println("Завершение программы.");
+                        return;
+                    }
+                    default -> System.out.println("Неверный ввод. Попробуйте снова.");
                 }
-                default -> System.out.println("Неверный ввод. Попробуйте снова.");
             }
         }
     }
 
-    private void addUser() {
+    private void addUserConsole(Scanner scanner) {
         System.out.println("Введите электронную почту пользователя => ");
         final String email = scanner.nextLine().trim();
 
@@ -45,17 +69,17 @@ public class UserStorage {
 
         try {
             final User user = User.builder().details(details).build();
-            storage.put(user);
+            addUser(user);
             System.out.println("Пользователь успешно добавлен.");
-        } catch (RuntimeException e) {
+        } catch (UserAlreadyExistsException e) {
             System.out.println("Ошибка: " + e.getMessage());
         }
     }
 
-    private void searchUser() {
+    private void searchUserConsole(Scanner scanner) {
         System.out.println("Введите электронную почту для поиска => ");
         final String email = scanner.nextLine().trim();
-        final User user = storage.get(email);
+        final User user = searchUser(email);
         if (user == null) {
             System.out.println("Пользователь не найден.");
         } else {
@@ -63,11 +87,17 @@ public class UserStorage {
         }
     }
 
-    private String getAction() {
+    private String getAction(Scanner scanner) {
         System.out.println("Выберите действие:");
         System.out.println("1 - Добавление пользователя");
         System.out.println("2 - Поиск пользователя по электронной почте");
         System.out.println("3 - Выход");
         return scanner.nextLine().trim();
+    }
+
+    public static class UserAlreadyExistsException extends RuntimeException {
+        public UserAlreadyExistsException(String message) {
+            super(message);
+        }
     }
 }

@@ -1,5 +1,8 @@
 package ru.yandex.practicum.catsgram.model;
 
+import ru.yandex.practicum.catsgram.exception.InvalidEmailException;
+import ru.yandex.practicum.catsgram.exception.UserAlreadyExistsException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,13 +11,16 @@ public class MemoryStorage implements Storage {
 
     @Override
     public void put(final User user) {
-        if (user.getDetails() == null || user.getDetails().getEmail() == null) {
-            throw new RuntimeException("Email should be provided");
+        if (user == null || user.getDetails() == null || user.getDetails().getEmail() == null) {
+            throw new InvalidEmailException("Email должен быть указан.");
         }
+
         final String email = user.getDetails().getEmail().toLowerCase();
+
         if (users.containsKey(email)) {
-            throw new RuntimeException("User already exists");
+            throw new UserAlreadyExistsException("Пользователь с таким email уже существует.");
         }
+
         users.put(email, user);
     }
 
@@ -23,6 +29,7 @@ public class MemoryStorage implements Storage {
         if (email == null) {
             return null;
         }
+
         return users.get(email.toLowerCase());
     }
 }

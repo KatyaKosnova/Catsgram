@@ -20,6 +20,15 @@ public class PostController {
         return posts.values();
     }
 
+    @PostMapping
+    public Post create(@RequestBody Post newPost) {
+        if (newPost.getDescription() == null || newPost.getDescription().isBlank()) {
+            throw new ConditionsNotMetException("Описание не может быть пустым");
+        }
+        posts.put(newPost.getId(), newPost); // сохраняем новый пост
+        return newPost;
+    }
+
     @PutMapping
     public Post update(@RequestBody Post newPost) {
         // проверяем необходимые условия
@@ -31,7 +40,7 @@ public class PostController {
             if (newPost.getDescription() == null || newPost.getDescription().isBlank()) {
                 throw new ConditionsNotMetException("Описание не может быть пустым");
             }
-            // если публикация найдена и все условия соблюдены, обновляем её содержимое
+            // обновляем пост
             oldPost.setDescription(newPost.getDescription());
             return oldPost;
         }
